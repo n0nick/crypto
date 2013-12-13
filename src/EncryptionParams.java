@@ -8,25 +8,26 @@ public class EncryptionParams implements java.io.Serializable {
 
 	private static final long serialVersionUID = 7014557932766694444L;
 
-	public String decryptorKeyName;
 	public String encryptorKeyName;
-	public byte[] encryptedKey;
-	public String encFile;
 	public String encryptorKeyPass;
-	public byte[] initVec = new byte[16];
-	public String keyGenType;
-	public int encryptedKeyLength;
-	public int initVecLength;
-	public int signResultLength;
-	public byte[] signResult;
-	public String AES_CRYPT_PROVIDER;
-	public String DSA_CRYPT_PROVIDER;
-	public String RSA_CRYPT_PROVIDER;
-	public String ksProvider;
-	public String AES_ALGORITHM_TYPE;
-	public String RSA_ALGORITHM_TYPE;
-	public String DSA_ALGORITHM_TYPE;
-	public String ksType;
+	public String encryptorCryptProvider;
+	public String encryptorAlgorithm;
+
+	public String sigKeyName;
+	public String sigAlgorithm;
+	public String sigCryptProvider;
+
+	public String secretAlgorithm;
+	public String secretCryptProvider;
+
+	public String keyStoreProvider;
+	public String keyStoreType;
+	
+	public String keyGenAlgorithm;
+	public byte[] encryptedKey;
+	public String encryptedFile; // encrypted filename
+	public byte[] iv = new byte[16]; // cipher initialization vector
+	public byte[] signature;
 
 	public void writeToFile(String fileName) throws IOException {
 		FileOutputStream fout = new FileOutputStream(fileName);

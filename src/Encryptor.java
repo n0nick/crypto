@@ -1,13 +1,13 @@
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.cert.Certificate;
-import java.util.Arrays;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
+import java.io.IOException;
+
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
@@ -15,105 +15,96 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 public class Encryptor {
-	
+
 	private Signature signature;
-	private String signFile;
-	
-	private Cipher cipherAES;
-	private SecretKey AESSecKey;
-	
+
+	private Cipher secretCipher;
+	private SecretKey secretKey;
+
 	private EncryptionParams params;
 
-	public Encryptor(String keypass) {
-		
+	public Encryptor(String keypass) throws IOException, GeneralSecurityException {
+
 		this.params = new EncryptionParams();
 
-		try {
-			params.keyGenType = "AES";
+		params.keyGenAlgorithm = "AES";
 
-			params.ksType = "JCEKS";
-			params.ksProvider = "SunJCE";
+		params.keyStoreType = "JCEKS";
+		params.keyStoreProvider = "SunJCE";
 
-			params.AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
-			params.RSA_ALGORITHM_TYPE = "RSA";
-			params.DSA_ALGORITHM_TYPE = "DSA";
+		params.secretAlgorithm = "AES/CBC/PKCS5Padding";
+		params.sigAlgorithm = "DSA";
+		params.encryptorAlgorithm = "RSA";
 
-			params.AES_CRYPT_PROVIDER = "SunJCE";
-			params.RSA_CRYPT_PROVIDER = "SunJCE";
-			params.DSA_CRYPT_PROVIDER = "SUN";
-			signFile = "signature.txt";
+		params.secretCryptProvider = "SunJCE";
+		params.encryptorCryptProvider = "SunJCE";
+		params.sigCryptProvider = "SUN";
 
-			params.encryptorKeyName = "encryptor";
-			params.encryptorKeyPass = "DJc8k7W9";
+		params.encryptorKeyName = "encryptor";
+		params.encryptorKeyPass = "DJc8k7W9";
 
-			params.decryptorKeyName = "decryptor";
-			String decryptorKeyPass = "w043Ea-H";
+		params.sigKeyName = "decryptor";
+		String decryptorKeyPass = "w043Ea-H";
 
-			signature = Signature.getInstance("DSA");
-			Cipher decode = Cipher.getInstance(params.AES_ALGORITHM_TYPE);
-			KeyGenerator genAES = KeyGenerator.getInstance("AES");
-			SecureRandom secRandom = new SecureRandom();
-			secRandom.nextBytes(params.initVec);
-			cipherAES = Cipher.getInstance(params.AES_ALGORITHM_TYPE);
-			Cipher cipherRSA = Cipher.getInstance("RSA");
-			AESSecKey = genAES.generateKey();
-			KeyStore ks = KeyStore.getInstance(params.ksType);
-			FileInputStream inputStream = new FileInputStream(
-					Crypto.KEYSTORE_FILENAME);
-			ks.load(inputStream, keypass.toCharArray());
-			PrivateKey DSAPrivateKey = (PrivateKey) ks.getKey(params.decryptorKeyName,
-					decryptorKeyPass.toCharArray());
-			Certificate RSACertificate = ks.getCertificate(params.encryptorKeyName);
+		signature = Signature.getInstance(params.sigAlgorithm);
+		KeyGenerator keyGen = KeyGenerator
+				.getInstance(params.keyGenAlgorithm);
+		SecureRandom secRandom = new SecureRandom();
+		secRandom.nextBytes(params.iv);
+		secretCipher = Cipher.getInstance(params.secretAlgorithm);
+		secretKey = keyGen.generateKey();
+		
+		Cipher encryptorCipher = Cipher
+				.getInstance(params.encryptorAlgorithm);
+		
+		KeyStore ks = KeyStore.getInstance(params.keyStoreType);
+		FileInputStream inputStream = new FileInputStream(
+				Crypto.KEYSTORE_FILENAME);
+		ks.load(inputStream, keypass.toCharArray());
+		PrivateKey sigPrivateKey = (PrivateKey) ks.getKey(
+				params.sigKeyName, decryptorKeyPass.toCharArray());
+		Certificate encryptorCertificate = ks
+				.getCertificate(params.encryptorKeyName);
 
-			cipherAES.init(Cipher.ENCRYPT_MODE, AESSecKey, new IvParameterSpec(
-					params.initVec));
-			decode.init(Cipher.DECRYPT_MODE, AESSecKey, new IvParameterSpec(
-					params.initVec));
-			cipherRSA.init(Cipher.ENCRYPT_MODE, RSACertificate);
-			signature.initSign(DSAPrivateKey);
-			cipherRSA.update(AESSecKey.getEncoded());
-			params.encryptedKey = cipherRSA.doFinal();
-		} catch (Exception e) {
-			System.out.println("Error initializing: " + e.getMessage());
-		}
+		secretCipher.init(Cipher.ENCRYPT_MODE, secretKey,
+				new IvParameterSpec(params.iv));
+
+		encryptorCipher.init(Cipher.ENCRYPT_MODE, encryptorCertificate);
+		signature.initSign(sigPrivateKey);
+		encryptorCipher.update(secretKey.getEncoded());
+		params.encryptedKey = encryptorCipher.doFinal();
 
 	}
 
-	public void encryptFile(String fileToEncrypt) throws Exception {
+	public void encryptFile(String filename) throws IOException, GeneralSecurityException {
 
-		params.encFile = fileToEncrypt + ".enc";
+		params.encryptedFile = filename + ".enc";
+
 		FileInputStream fileInput = null;
 		FileOutputStream fileOutput = null;
-		BufferedWriter out = null;
 		CipherOutputStream outputStream = null;
+		
 		try {
 			byte[] readBuffer = new byte[8];
 			int bytesRead;
-			fileInput = new FileInputStream(fileToEncrypt);
-			fileOutput = new FileOutputStream(fileToEncrypt + ".enc");
+			fileInput = new FileInputStream(filename);
+			fileOutput = new FileOutputStream(filename + ".enc");
 
-			// init the output stream to encrypt using the cipher output stream,
-			// using AES algorithm
-			outputStream = new CipherOutputStream(fileOutput, cipherAES);
+			outputStream = new CipherOutputStream(fileOutput, secretCipher);
 
 			while ((bytesRead = fileInput.read(readBuffer)) != -1) {
 				outputStream.write(readBuffer, 0, bytesRead);
 				this.signature.update(readBuffer, 0, bytesRead);
 			}
 
-			// sign the file
-			params.signResult = this.signature.sign();
-			out = new BufferedWriter(new FileWriter(signFile));
-			out.write(Integer.toString(params.signResult.length) + "\r\n");
-			out.write(Arrays.toString(params.signResult) + "\r\n");
-			
-			params.writeToFile("config.txt");
+			params.signature = this.signature.sign();
+
+			params.writeToFile(filename + ".cfg");
 		} finally {
 			outputStream.close();
 			fileInput.close();
 			fileOutput.flush();
 			fileOutput.close();
-			out.close();
 		}
 	}
 }
