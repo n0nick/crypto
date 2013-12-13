@@ -58,61 +58,56 @@ public class Encryptor {
 	private KeyStore ks;
 	private String ksProvider;
 	private String ksType;
-	private String ksPass;
-	private String ksFile;
 
 	public Encryptor(String keypass) {
 
 		// constructor for initializing all the vars
 		try {
-			this.keyGenType = "AES";
+			keyGenType = "AES";
 			
-			this.ksType = "JCEKS";
-			this.ksProvider = "SunJCE";
+			ksType = "JCEKS";
+			ksProvider = "SunJCE";
 			
-			this.AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
-			this.RSA_ALGORITHM_TYPE = "RSA";
-			this.DSA_ALGORITHM_TYPE = "DSA";
+			AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
+			RSA_ALGORITHM_TYPE = "RSA";
+			DSA_ALGORITHM_TYPE = "DSA";
 			
-			this.AES_CRYPT_PROVIDER = "SunJCE";
-			this.RSA_CRYPT_PROVIDER = "SunJCE";
-			this.DSA_CRYPT_PROVIDER = "SUN";
-			this.confFile = "config.txt";
-			this.encFile = "output.txt";
-			this.signFile = "signature.txt";
+			AES_CRYPT_PROVIDER = "SunJCE";
+			RSA_CRYPT_PROVIDER = "SunJCE";
+			DSA_CRYPT_PROVIDER = "SUN";
+			confFile = "config.txt";
+			encFile = "output.txt";
+			signFile = "signature.txt";
 
-			this.encryptorKeyName = "encryptor";
-			this.encryptorKeyPass = "DJc8k7W9";
+			encryptorKeyName = "encryptor";
+			encryptorKeyPass = "DJc8k7W9";
 			
-			this.decryptorKeyName = "decryptor";
-			this.decryptorKeyPass = "w043Ea-H";
+			decryptorKeyName = "decryptor";
+			decryptorKeyPass = "w043Ea-H";
 			
-			this.ksFile = Crypto.KEYSTORE_FILENAME;
-			this.ksPass = keypass;
-
-			this.signature = Signature.getInstance("DSA");
-			this.decode = Cipher.getInstance(AES_ALGORITHM_TYPE);
-			this.genAES = KeyGenerator.getInstance("AES");
-			this.secRandom = new SecureRandom();
+			signature = Signature.getInstance("DSA");
+			decode = Cipher.getInstance(AES_ALGORITHM_TYPE);
+			genAES = KeyGenerator.getInstance("AES");
+			secRandom = new SecureRandom();
 			secRandom.nextBytes(initVec);
-			this.cipherAES = Cipher.getInstance(AES_ALGORITHM_TYPE);
-			this.cipherRSA = Cipher.getInstance("RSA");
+			cipherAES = Cipher.getInstance(AES_ALGORITHM_TYPE);
+			cipherRSA = Cipher.getInstance("RSA");
 			AESSecKey = genAES.generateKey();
-			this.ks = KeyStore.getInstance(this.ksType);
-			FileInputStream inputStream = new FileInputStream(ksFile);
-			ks.load(inputStream, ksPass.toCharArray());
-			this.DSAPrivateKey = (PrivateKey) ks.getKey(decryptorKeyName,
+			ks = KeyStore.getInstance(ksType);
+			FileInputStream inputStream = new FileInputStream(Crypto.KEYSTORE_FILENAME);
+			ks.load(inputStream, keypass.toCharArray());
+			DSAPrivateKey = (PrivateKey) ks.getKey(decryptorKeyName,
 					decryptorKeyPass.toCharArray());
-			this.RSACertificate = ks.getCertificate(encryptorKeyName);
+			RSACertificate = ks.getCertificate(encryptorKeyName);
 
 			cipherAES.init(Cipher.ENCRYPT_MODE, AESSecKey, new IvParameterSpec(
 					initVec));
 			decode.init(Cipher.DECRYPT_MODE, AESSecKey, new IvParameterSpec(
 					initVec));
-			this.cipherRSA.init(Cipher.ENCRYPT_MODE, RSACertificate);
-			this.signature.initSign(DSAPrivateKey);
+			cipherRSA.init(Cipher.ENCRYPT_MODE, RSACertificate);
+			signature.initSign(DSAPrivateKey);
 			cipherRSA.update(AESSecKey.getEncoded());
-			this.encryptedKey = cipherRSA.doFinal();
+			encryptedKey = cipherRSA.doFinal();
 		} catch (Exception e) {
 			System.out.println("Error initializing: " + e.getMessage());
 		}
@@ -126,10 +121,8 @@ public class Encryptor {
 			String newline = "\r\n";
 			out.write(decryptorKeyName + newline);
 			out.write(encryptorKeyName + newline);
-			out.write(ksFile + newline);
 			out.write(Arrays.toString(encryptedKey) + newline);
 			out.write(encFile + newline);
-			out.write(ksPass + newline);
 			out.write(encryptorKeyPass + newline);
 			out.write(Arrays.toString(initVec) + newline);
 			out.write(keyGenType + newline);

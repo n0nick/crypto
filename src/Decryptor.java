@@ -41,7 +41,6 @@ public class Decryptor {
 	private String keystoreFile;
 	private String DSAType;
 	private String keyStoreType;
-	private String keyStorePassword;
 	private String RSAPassword;
 	private byte[] encryptedKey;
 	private String keyGenType;
@@ -53,28 +52,26 @@ public class Decryptor {
 	public Decryptor(String keypass) throws Exception {
 		
 		// init all the local variables
-		this.configFile = "config.txt";
+		configFile = "config.txt";
 		readConfigFromFile();
 		
-
-		this.keypass = keypass;
-		this.keystoreFile = Crypto.KEYSTORE_FILENAME;
+		keystoreFile = Crypto.KEYSTORE_FILENAME;
 		
-		this.AESCipher = Cipher.getInstance(this.AESType, this.AESProvider);
-		this.RSACipher = Cipher.getInstance(this.RSAType, this.RSAProvider);
-		this.signature = Signature.getInstance(this.DSAType, this.DSAProvider);
-		this.keyStore = KeyStore.getInstance(this.keyStoreType,
-				this.keyStoreProvider);
-		FileInputStream inputStream = new FileInputStream(this.keystoreFile);
-		keyStore.load(inputStream, this.keypass.toCharArray());
-		this.RSAPrivateKey = (PrivateKey) keyStore.getKey(RSAToken,
+		AESCipher = Cipher.getInstance(AESType, AESProvider);
+		RSACipher = Cipher.getInstance(RSAType, RSAProvider);
+		signature = Signature.getInstance(DSAType, DSAProvider);
+		keyStore = KeyStore.getInstance(keyStoreType,
+				keyStoreProvider);
+		FileInputStream inputStream = new FileInputStream(keystoreFile);
+		keyStore.load(inputStream, keypass.toCharArray());
+		RSAPrivateKey = (PrivateKey) keyStore.getKey(RSAToken,
 				RSAPassword.toCharArray());
-		this.DSAPublicKey = keyStore.getCertificate(DSAToken).getPublicKey();
-		this.RSACipher.init(Cipher.DECRYPT_MODE, RSAPrivateKey);
-		this.signature.initVerify(DSAPublicKey);
-		RSACipher.update(this.encryptedKey);
+		DSAPublicKey = keyStore.getCertificate(DSAToken).getPublicKey();
+		RSACipher.init(Cipher.DECRYPT_MODE, RSAPrivateKey);
+		signature.initVerify(DSAPublicKey);
+		RSACipher.update(encryptedKey);
 		byte[] temp = RSACipher.doFinal();
-		this.AESKey = new SecretKeySpec(temp, this.keyGenType);
+		AESKey = new SecretKeySpec(temp, keyGenType);
 		AESCipher.init(Cipher.DECRYPT_MODE, AESKey, new IvParameterSpec(IV));
 	}
 
@@ -82,30 +79,28 @@ public class Decryptor {
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new FileReader(configFile));
-			this.DSAToken = in.readLine();
-			this.RSAToken = in.readLine();
-			this.keystoreFile = in.readLine(); //
+			DSAToken = in.readLine();
+			RSAToken = in.readLine();
 			String tempKey = in.readLine();
-			this.encryptedFile = in.readLine();
-			this.keyStorePassword = in.readLine(); //
-			this.RSAPassword = in.readLine();
+			encryptedFile = in.readLine();
+			RSAPassword = in.readLine();
 			String tempIV = in.readLine();
-			this.keyGenType = in.readLine();
-			this.encryptedKeyByteSize = Integer.parseInt(in.readLine());
-			this.IVByteSize = Integer.parseInt(in.readLine());
-			this.encryptedKey = toByteArray(tempKey, encryptedKeyByteSize);
-			this.IV = toByteArray(tempIV, IVByteSize);
-			this.signatureSize = Integer.parseInt(in.readLine());
+			keyGenType = in.readLine();
+			encryptedKeyByteSize = Integer.parseInt(in.readLine());
+			IVByteSize = Integer.parseInt(in.readLine());
+			encryptedKey = toByteArray(tempKey, encryptedKeyByteSize);
+			IV = toByteArray(tempIV, IVByteSize);
+			signatureSize = Integer.parseInt(in.readLine());
 			String tempSig = in.readLine();
-			this.signatureResult = toByteArray(tempSig, signatureSize);
-			this.AESProvider = in.readLine();
-			this.DSAProvider = in.readLine();
-			this.RSAProvider = in.readLine();
-			this.keyStoreProvider = in.readLine();
-			this.AESType = in.readLine();
-			this.RSAType = in.readLine();
-			this.DSAType = in.readLine();
-			this.keyStoreType = in.readLine();
+			signatureResult = toByteArray(tempSig, signatureSize);
+			AESProvider = in.readLine();
+			DSAProvider = in.readLine();
+			RSAProvider = in.readLine();
+			keyStoreProvider = in.readLine();
+			AESType = in.readLine();
+			RSAType = in.readLine();
+			DSAType = in.readLine();
+			keyStoreType = in.readLine();
 
 		} finally {
 			in.close();
