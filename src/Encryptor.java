@@ -64,14 +64,14 @@ public class Encryptor {
 		// constructor for initializing all the vars
 		try {
 			keyGenType = "AES";
-			
+
 			ksType = "JCEKS";
 			ksProvider = "SunJCE";
-			
+
 			AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
 			RSA_ALGORITHM_TYPE = "RSA";
 			DSA_ALGORITHM_TYPE = "DSA";
-			
+
 			AES_CRYPT_PROVIDER = "SunJCE";
 			RSA_CRYPT_PROVIDER = "SunJCE";
 			DSA_CRYPT_PROVIDER = "SUN";
@@ -81,10 +81,10 @@ public class Encryptor {
 
 			encryptorKeyName = "encryptor";
 			encryptorKeyPass = "DJc8k7W9";
-			
+
 			decryptorKeyName = "decryptor";
 			decryptorKeyPass = "w043Ea-H";
-			
+
 			signature = Signature.getInstance("DSA");
 			decode = Cipher.getInstance(AES_ALGORITHM_TYPE);
 			genAES = KeyGenerator.getInstance("AES");
@@ -94,7 +94,8 @@ public class Encryptor {
 			cipherRSA = Cipher.getInstance("RSA");
 			AESSecKey = genAES.generateKey();
 			ks = KeyStore.getInstance(ksType);
-			FileInputStream inputStream = new FileInputStream(Crypto.KEYSTORE_FILENAME);
+			FileInputStream inputStream = new FileInputStream(
+					Crypto.KEYSTORE_FILENAME);
 			ks.load(inputStream, keypass.toCharArray());
 			DSAPrivateKey = (PrivateKey) ks.getKey(decryptorKeyName,
 					decryptorKeyPass.toCharArray());
@@ -115,32 +116,26 @@ public class Encryptor {
 	}
 
 	public void prepareConfigFile() throws IOException {
-		BufferedWriter out = null;
-		try {
-			out = new BufferedWriter(new FileWriter(confFile));
-			String newline = "\r\n";
-			out.write(decryptorKeyName + newline);
-			out.write(encryptorKeyName + newline);
-			out.write(Arrays.toString(encryptedKey) + newline);
-			out.write(encFile + newline);
-			out.write(encryptorKeyPass + newline);
-			out.write(Arrays.toString(initVec) + newline);
-			out.write(keyGenType + newline);
-			out.write(Integer.toString(encryptedKey.length) + newline);
-			out.write(Integer.toString(initVec.length) + newline);
-			out.write(Integer.toString(signResult.length) + newline);
-			out.write(Arrays.toString(signResult) + newline);
-			out.write(AES_CRYPT_PROVIDER + newline);
-			out.write(DSA_CRYPT_PROVIDER + newline);
-			out.write(RSA_CRYPT_PROVIDER + newline);
-			out.write(ksProvider + newline);
-			out.write(AES_ALGORITHM_TYPE + newline);
-			out.write(RSA_ALGORITHM_TYPE + newline);
-			out.write(DSA_ALGORITHM_TYPE + newline);
-			out.write(ksType + newline);
-		} finally {
-			out.close();
-		}
+		EncryptionParams params = new EncryptionParams();
+		
+		params.decryptorKeyName = decryptorKeyName;
+		params.encryptorKeyName = encryptorKeyName;
+		params.encryptedKey = encryptedKey;
+		params.encFile = encFile;
+		params.encryptorKeyPass = encryptorKeyPass;
+		params.initVec = initVec;
+		params.keyGenType = keyGenType;
+		params.signResult = signResult;
+		params.AES_CRYPT_PROVIDER = AES_CRYPT_PROVIDER;
+		params.DSA_CRYPT_PROVIDER = DSA_CRYPT_PROVIDER;
+		params.RSA_CRYPT_PROVIDER = RSA_CRYPT_PROVIDER;
+		params.ksProvider = ksProvider;
+		params.AES_ALGORITHM_TYPE = AES_ALGORITHM_TYPE;
+		params.RSA_ALGORITHM_TYPE = RSA_ALGORITHM_TYPE;
+		params.DSA_ALGORITHM_TYPE = DSA_ALGORITHM_TYPE;
+		params.ksType = ksType;
+		
+		params.writeToFile(confFile);
 	}
 
 	public void doWork(String fileToEncrypt) throws Exception {

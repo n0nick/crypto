@@ -1,7 +1,5 @@
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -13,8 +11,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Decryptor {
-
-	private String keypass;
 
 	public void decryptFile(String filename, String configurationFile) throws Exception {
 		doWork("output.dec");
@@ -35,7 +31,6 @@ public class Decryptor {
 	private String AESProvider;
 	private String RSAProvider;
 	private String DSAProvider;
-	private int signatureSize;
 	private byte[] signatureResult;
 	private String encryptedFile;
 	private String keystoreFile;
@@ -46,8 +41,6 @@ public class Decryptor {
 	private String keyGenType;
 	private byte[] IV;
 	private String keyStoreProvider;
-	private int IVByteSize;
-	private int encryptedKeyByteSize;
 
 	public Decryptor(String keypass) throws Exception {
 		
@@ -76,35 +69,23 @@ public class Decryptor {
 	}
 
 	private void readConfigFromFile() throws Exception {
-		BufferedReader in = null;
-		try {
-			in = new BufferedReader(new FileReader(configFile));
-			DSAToken = in.readLine();
-			RSAToken = in.readLine();
-			String tempKey = in.readLine();
-			encryptedFile = in.readLine();
-			RSAPassword = in.readLine();
-			String tempIV = in.readLine();
-			keyGenType = in.readLine();
-			encryptedKeyByteSize = Integer.parseInt(in.readLine());
-			IVByteSize = Integer.parseInt(in.readLine());
-			encryptedKey = toByteArray(tempKey, encryptedKeyByteSize);
-			IV = toByteArray(tempIV, IVByteSize);
-			signatureSize = Integer.parseInt(in.readLine());
-			String tempSig = in.readLine();
-			signatureResult = toByteArray(tempSig, signatureSize);
-			AESProvider = in.readLine();
-			DSAProvider = in.readLine();
-			RSAProvider = in.readLine();
-			keyStoreProvider = in.readLine();
-			AESType = in.readLine();
-			RSAType = in.readLine();
-			DSAType = in.readLine();
-			keyStoreType = in.readLine();
-
-		} finally {
-			in.close();
-		}
+		EncryptionParams params = EncryptionParams.readFromFile(configFile);
+		this.DSAToken = params.decryptorKeyName;
+		this.RSAToken = params.encryptorKeyName;
+		this.RSAPassword = params.encryptorKeyPass;
+		this.encryptedKey = params.encryptedKey;
+		this.encryptedFile = params.encFile;
+		this.IV = params.initVec;
+		this.keyGenType = params.keyGenType;
+		this.signatureResult = params.signResult;
+		this.AESProvider = params.AES_CRYPT_PROVIDER;
+		this.DSAProvider = params.DSA_CRYPT_PROVIDER;
+		this.RSAProvider  = params.RSA_CRYPT_PROVIDER;
+		this.keyStoreProvider = params.ksProvider;
+		this.AESType = params.AES_ALGORITHM_TYPE;
+		this.RSAType = params.RSA_ALGORITHM_TYPE;
+		this.DSAType = params.DSA_ALGORITHM_TYPE;
+		this.keyStoreType  = params.ksType;
 	}
 
 	public void doWork(String outputFile) throws Exception {
@@ -141,14 +122,5 @@ public class Decryptor {
 			fos.close();
 			signatureFileStream.close();
 		}
-	}
-
-	private static byte[] toByteArray(String source, int byteSize) {
-		String[] convertion = source.replaceAll("[\\[\\]]", "").split(", ");
-		byte[] currentParam = new byte[byteSize];
-		for (int i = 0; i < convertion.length; i++) {
-			currentParam[i] = (byte) Integer.parseInt(convertion[i]);
-		}
-		return currentParam;
 	}
 }
