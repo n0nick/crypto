@@ -10,12 +10,14 @@ public class Crypto {
 			
 			if (cmd.equals("encrypt")) {
 				if (args.length == 3) {
-					System.out.println("Ecnryptinizor!");
+					Encryptor encryptor = new Encryptor(args[1]);
+					encryptor.encryptFile(args[2]);
 					return;
 				}
 			} else if (cmd.equals("decrypt")) {
 				if (args.length == 4) {
-					System.out.println("Decryptinizor!");
+					Decryptor decryptor = new Decryptor(args[1]);
+					decryptor.decryptFile(args[2], args[3]);
 					return;
 				}
 			}
@@ -27,12 +29,12 @@ public class Crypto {
 	
 	public static void printUsage() {
 		System.out.println("Usage:");
-		System.out.println("  Crypto encrypt <filename> <keypass>");
+		System.out.println("  Crypto encrypt <keypass> <filename>");
 		System.out.println("    Encrypts file using 'encryptor' key in keystore.");
 		System.out.println("    Output is 2 files: Encrypted copy of the file, " +
 				"and an encryption configuration file.");
 		System.out.println("    Password to keystore must be provided.");
-		System.out.println("  Crypto decript <encrypted_file> <encryption_cfg> <keypass>");
+		System.out.println("  Crypto decript <keypass> <encrypted_file> <encryption_cfg>");
 		System.out.println("    Decrypts file using 'decryptor' key in keystore.");
 		System.out.println("    Password to keystore must be provided.");
 	}
