@@ -17,80 +17,33 @@ public class Decryptor {
 	}
 
 	private Cipher AESCipher;
-	private Cipher RSACipher;
 	private Signature signature;
-	private SecretKey AESKey;
-	private String RSAToken;
-	private String DSAToken;
-	private String AESType;
-	private String RSAType;
-	private KeyStore keyStore;
-	private PrivateKey RSAPrivateKey;
-	private PublicKey DSAPublicKey;
-	private String configFile;
-	private String AESProvider;
-	private String RSAProvider;
-	private String DSAProvider;
-	private byte[] signatureResult;
-	private String encryptedFile;
-	private String keystoreFile;
-	private String DSAType;
-	private String keyStoreType;
-	private String RSAPassword;
-	private byte[] encryptedKey;
-	private String keyGenType;
-	private byte[] IV;
-	private String keyStoreProvider;
+	
+	private EncryptionParams params;
 
 	public Decryptor(String keypass) throws Exception {
+		this.params = EncryptionParams.readFromFile("config.txt");
 		
-		// init all the local variables
-		configFile = "config.txt";
-		readConfigFromFile();
-		
-		keystoreFile = Crypto.KEYSTORE_FILENAME;
-		
-		AESCipher = Cipher.getInstance(AESType, AESProvider);
-		RSACipher = Cipher.getInstance(RSAType, RSAProvider);
-		signature = Signature.getInstance(DSAType, DSAProvider);
-		keyStore = KeyStore.getInstance(keyStoreType,
-				keyStoreProvider);
-		FileInputStream inputStream = new FileInputStream(keystoreFile);
+		AESCipher = Cipher.getInstance(params.AES_ALGORITHM_TYPE, params.AES_CRYPT_PROVIDER);
+		Cipher RSACipher = Cipher.getInstance(params.RSA_ALGORITHM_TYPE, params.RSA_CRYPT_PROVIDER);
+		signature = Signature.getInstance(params.DSA_ALGORITHM_TYPE, params.DSA_CRYPT_PROVIDER);
+		KeyStore keyStore = KeyStore.getInstance(params.ksType,
+				params.ksProvider);
+		FileInputStream inputStream = new FileInputStream(Crypto.KEYSTORE_FILENAME);
 		keyStore.load(inputStream, keypass.toCharArray());
-		RSAPrivateKey = (PrivateKey) keyStore.getKey(RSAToken,
-				RSAPassword.toCharArray());
-		DSAPublicKey = keyStore.getCertificate(DSAToken).getPublicKey();
+		PrivateKey RSAPrivateKey = (PrivateKey) keyStore.getKey(params.encryptorKeyName,
+				params.encryptorKeyPass.toCharArray());
+		PublicKey DSAPublicKey = keyStore.getCertificate(params.decryptorKeyName).getPublicKey();
 		RSACipher.init(Cipher.DECRYPT_MODE, RSAPrivateKey);
 		signature.initVerify(DSAPublicKey);
-		RSACipher.update(encryptedKey);
+		RSACipher.update(params.encryptedKey);
 		byte[] temp = RSACipher.doFinal();
-		AESKey = new SecretKeySpec(temp, keyGenType);
-		AESCipher.init(Cipher.DECRYPT_MODE, AESKey, new IvParameterSpec(IV));
-	}
-
-	private void readConfigFromFile() throws Exception {
-		EncryptionParams params = EncryptionParams.readFromFile(configFile);
-		this.DSAToken = params.decryptorKeyName;
-		this.RSAToken = params.encryptorKeyName;
-		this.RSAPassword = params.encryptorKeyPass;
-		this.encryptedKey = params.encryptedKey;
-		this.encryptedFile = params.encFile;
-		this.IV = params.initVec;
-		this.keyGenType = params.keyGenType;
-		this.signatureResult = params.signResult;
-		this.AESProvider = params.AES_CRYPT_PROVIDER;
-		this.DSAProvider = params.DSA_CRYPT_PROVIDER;
-		this.RSAProvider  = params.RSA_CRYPT_PROVIDER;
-		this.keyStoreProvider = params.ksProvider;
-		this.AESType = params.AES_ALGORITHM_TYPE;
-		this.RSAType = params.RSA_ALGORITHM_TYPE;
-		this.DSAType = params.DSA_ALGORITHM_TYPE;
-		this.keyStoreType  = params.ksType;
+		SecretKey AESKey = new SecretKeySpec(temp, params.keyGenType);
+		AESCipher.init(Cipher.DECRYPT_MODE, AESKey, new IvParameterSpec(params.initVec));
 	}
 
 	public void doWork(String outputFile) throws Exception {
 
-		//this.readConfigFromFile();
 		byte[] buffer = new byte[8];
 		FileOutputStream fos = null;
 		FileInputStream encryptedFileStream = null;
@@ -99,7 +52,7 @@ public class Decryptor {
 
 		try {
 			fos = new FileOutputStream(outputFile);
-			encryptedFileStream = new FileInputStream(this.encryptedFile);
+			encryptedFileStream = new FileInputStream(params.encFile);
 			inputStream = new CipherInputStream(encryptedFileStream, AESCipher);
 
 			int bytesRead;
@@ -113,7 +66,7 @@ public class Decryptor {
 				signature.update(readBuffer, 0, bytesRead);
 			}
 
-			if (!signature.verify(signatureResult)) {
+			if (!signature.verify(params.signResult)) {
 				throw new Exception("The signatures do not match.");
 			}
 		} finally {

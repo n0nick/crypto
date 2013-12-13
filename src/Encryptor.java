@@ -8,7 +8,6 @@ import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
@@ -16,131 +15,73 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 public class Encryptor {
-	public void encryptFile(String filename) throws Exception {
-		this.doWork(filename);
-		this.prepareConfigFile();
-	}
-
+	
 	private Signature signature;
-	private SecureRandom secRandom;
-	private byte[] signResult;
-	private String encFile;
-	private String confFile;
 	private String signFile;
-	private byte[] initVec = new byte[16];
-	private String keyGenType;
-	private byte[] encryptedKey;
-	private Cipher decode;
-
-	// DSA vars
-	private String DSA_CRYPT_PROVIDER;
-	private String decryptorKeyName;
-	private String DSA_ALGORITHM_TYPE;
-	private String decryptorKeyPass;
-
-	// AES vars
+	
 	private Cipher cipherAES;
-	private KeyGenerator genAES;
-	private String AES_ALGORITHM_TYPE;
-	private String AES_CRYPT_PROVIDER;
 	private SecretKey AESSecKey;
-
-	// RSA vars
-	private Cipher cipherRSA;
-	private Certificate RSACertificate;
-	private String RSA_CRYPT_PROVIDER;
-	private String RSA_ALGORITHM_TYPE;
-	private String encryptorKeyName;
-	private String encryptorKeyPass;
-	private PrivateKey DSAPrivateKey;
-
-	// keystore vars
-	private KeyStore ks;
-	private String ksProvider;
-	private String ksType;
+	
+	private EncryptionParams params;
 
 	public Encryptor(String keypass) {
+		
+		this.params = new EncryptionParams();
 
-		// constructor for initializing all the vars
 		try {
-			keyGenType = "AES";
+			params.keyGenType = "AES";
 
-			ksType = "JCEKS";
-			ksProvider = "SunJCE";
+			params.ksType = "JCEKS";
+			params.ksProvider = "SunJCE";
 
-			AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
-			RSA_ALGORITHM_TYPE = "RSA";
-			DSA_ALGORITHM_TYPE = "DSA";
+			params.AES_ALGORITHM_TYPE = "AES/CBC/PKCS5Padding";
+			params.RSA_ALGORITHM_TYPE = "RSA";
+			params.DSA_ALGORITHM_TYPE = "DSA";
 
-			AES_CRYPT_PROVIDER = "SunJCE";
-			RSA_CRYPT_PROVIDER = "SunJCE";
-			DSA_CRYPT_PROVIDER = "SUN";
-			confFile = "config.txt";
-			encFile = "output.txt";
+			params.AES_CRYPT_PROVIDER = "SunJCE";
+			params.RSA_CRYPT_PROVIDER = "SunJCE";
+			params.DSA_CRYPT_PROVIDER = "SUN";
 			signFile = "signature.txt";
 
-			encryptorKeyName = "encryptor";
-			encryptorKeyPass = "DJc8k7W9";
+			params.encryptorKeyName = "encryptor";
+			params.encryptorKeyPass = "DJc8k7W9";
 
-			decryptorKeyName = "decryptor";
-			decryptorKeyPass = "w043Ea-H";
+			params.decryptorKeyName = "decryptor";
+			String decryptorKeyPass = "w043Ea-H";
 
 			signature = Signature.getInstance("DSA");
-			decode = Cipher.getInstance(AES_ALGORITHM_TYPE);
-			genAES = KeyGenerator.getInstance("AES");
-			secRandom = new SecureRandom();
-			secRandom.nextBytes(initVec);
-			cipherAES = Cipher.getInstance(AES_ALGORITHM_TYPE);
-			cipherRSA = Cipher.getInstance("RSA");
+			Cipher decode = Cipher.getInstance(params.AES_ALGORITHM_TYPE);
+			KeyGenerator genAES = KeyGenerator.getInstance("AES");
+			SecureRandom secRandom = new SecureRandom();
+			secRandom.nextBytes(params.initVec);
+			cipherAES = Cipher.getInstance(params.AES_ALGORITHM_TYPE);
+			Cipher cipherRSA = Cipher.getInstance("RSA");
 			AESSecKey = genAES.generateKey();
-			ks = KeyStore.getInstance(ksType);
+			KeyStore ks = KeyStore.getInstance(params.ksType);
 			FileInputStream inputStream = new FileInputStream(
 					Crypto.KEYSTORE_FILENAME);
 			ks.load(inputStream, keypass.toCharArray());
-			DSAPrivateKey = (PrivateKey) ks.getKey(decryptorKeyName,
+			PrivateKey DSAPrivateKey = (PrivateKey) ks.getKey(params.decryptorKeyName,
 					decryptorKeyPass.toCharArray());
-			RSACertificate = ks.getCertificate(encryptorKeyName);
+			Certificate RSACertificate = ks.getCertificate(params.encryptorKeyName);
 
 			cipherAES.init(Cipher.ENCRYPT_MODE, AESSecKey, new IvParameterSpec(
-					initVec));
+					params.initVec));
 			decode.init(Cipher.DECRYPT_MODE, AESSecKey, new IvParameterSpec(
-					initVec));
+					params.initVec));
 			cipherRSA.init(Cipher.ENCRYPT_MODE, RSACertificate);
 			signature.initSign(DSAPrivateKey);
 			cipherRSA.update(AESSecKey.getEncoded());
-			encryptedKey = cipherRSA.doFinal();
+			params.encryptedKey = cipherRSA.doFinal();
 		} catch (Exception e) {
 			System.out.println("Error initializing: " + e.getMessage());
 		}
 
 	}
 
-	public void prepareConfigFile() throws IOException {
-		EncryptionParams params = new EncryptionParams();
-		
-		params.decryptorKeyName = decryptorKeyName;
-		params.encryptorKeyName = encryptorKeyName;
-		params.encryptedKey = encryptedKey;
-		params.encFile = encFile;
-		params.encryptorKeyPass = encryptorKeyPass;
-		params.initVec = initVec;
-		params.keyGenType = keyGenType;
-		params.signResult = signResult;
-		params.AES_CRYPT_PROVIDER = AES_CRYPT_PROVIDER;
-		params.DSA_CRYPT_PROVIDER = DSA_CRYPT_PROVIDER;
-		params.RSA_CRYPT_PROVIDER = RSA_CRYPT_PROVIDER;
-		params.ksProvider = ksProvider;
-		params.AES_ALGORITHM_TYPE = AES_ALGORITHM_TYPE;
-		params.RSA_ALGORITHM_TYPE = RSA_ALGORITHM_TYPE;
-		params.DSA_ALGORITHM_TYPE = DSA_ALGORITHM_TYPE;
-		params.ksType = ksType;
-		
-		params.writeToFile(confFile);
-	}
+	public void encryptFile(String fileToEncrypt) throws Exception {
 
-	public void doWork(String fileToEncrypt) throws Exception {
-
-		this.encFile = fileToEncrypt + ".enc";
+		params.encFile = fileToEncrypt + ".enc";
 		FileInputStream fileInput = null;
 		FileOutputStream fileOutput = null;
 		BufferedWriter out = null;
@@ -161,10 +102,12 @@ public class Encryptor {
 			}
 
 			// sign the file
-			this.signResult = this.signature.sign();
+			params.signResult = this.signature.sign();
 			out = new BufferedWriter(new FileWriter(signFile));
-			out.write(Integer.toString(signResult.length) + "\r\n");
-			out.write(Arrays.toString(signResult) + "\r\n");
+			out.write(Integer.toString(params.signResult.length) + "\r\n");
+			out.write(Arrays.toString(params.signResult) + "\r\n");
+			
+			params.writeToFile("config.txt");
 		} finally {
 			outputStream.close();
 			fileInput.close();
