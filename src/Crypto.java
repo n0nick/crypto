@@ -1,6 +1,3 @@
-import java.io.IOException;
-
-
 public class Crypto {
 	
 	public static final String KEYSTORE_FILENAME = "crypto.ks";
@@ -17,15 +14,21 @@ public class Crypto {
 					try {
 						Encryptor encryptor = new Encryptor(args[1]);
 						encryptor.encryptFile(args[2]);
-					} catch (IOException e) {
+					} catch (Exception e) { //TODO IO
 						System.err.println("Error accessing file to encrypt.");
+						System.err.println(e.getMessage());
 					}
 					return;
 				}
 			} else if (cmd.equals("decrypt")) {
 				if (args.length == 4) {
+					try {
 					Decryptor decryptor = new Decryptor(args[1]);
 					decryptor.decryptFile(args[2], args[3]);
+					} catch (Exception e) { //TODO
+						System.err.println("Error accessing file to decrypt.");
+						System.err.println(e.getMessage());
+					}
 					return;
 				}
 			}

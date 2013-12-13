@@ -1,2 +1,2 @@
-$ keytool -genkeypair -alias encryptor -keystore crypto.ks -keypass DJc8k7W9 -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel"
-$ keytool -genkeypair -alias decryptor -keystore crypto.ks -keypass w043Ea-H -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel"
+$ keytool -genkeypair -alias encryptor -keystore crypto.ks -keypass DJc8k7W9 -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel" -keyalg RSA
+$ keytool -genkeypair -alias decryptor -keystore crypto.ks -keypass w043Ea-H -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel" -keyalg DSA
