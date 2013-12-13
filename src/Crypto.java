@@ -1,5 +1,9 @@
+import java.io.IOException;
+
 
 public class Crypto {
+	
+	public static final String KEYSTORE_FILENAME = "crypto.ks";
 
 	/**
 	 * @param args
@@ -10,8 +14,12 @@ public class Crypto {
 			
 			if (cmd.equals("encrypt")) {
 				if (args.length == 3) {
-					Encryptor encryptor = new Encryptor(args[1]);
-					encryptor.encryptFile(args[2]);
+					try {
+						Encryptor encryptor = new Encryptor(args[1]);
+						encryptor.encryptFile(args[2]);
+					} catch (IOException e) {
+						System.err.println("Error accessing file to encrypt.");
+					}
 					return;
 				}
 			} else if (cmd.equals("decrypt")) {
@@ -28,15 +36,15 @@ public class Crypto {
 	}
 	
 	public static void printUsage() {
-		System.out.println("Usage:");
-		System.out.println("  Crypto encrypt <keypass> <filename>");
-		System.out.println("    Encrypts file using 'encryptor' key in keystore.");
-		System.out.println("    Output is 2 files: Encrypted copy of the file, " +
+		System.err.println("Usage:");
+		System.err.println("  Crypto encrypt <keypass> <filename>");
+		System.err.println("    Encrypts file using 'encryptor' key in keystore.");
+		System.err.println("    Output is 2 files: Encrypted copy of the file, " +
 				"and an encryption configuration file.");
-		System.out.println("    Password to keystore must be provided.");
-		System.out.println("  Crypto decript <keypass> <encrypted_file> <encryption_cfg>");
-		System.out.println("    Decrypts file using 'decryptor' key in keystore.");
-		System.out.println("    Password to keystore must be provided.");
+		System.err.println("    Password to keystore must be provided.");
+		System.err.println("  Crypto decript <keypass> <encrypted_file> <encryption_cfg>");
+		System.err.println("    Decrypts file using 'decryptor' key in keystore.");
+		System.err.println("    Password to keystore must be provided.");
 	}
 
 }
