@@ -20,6 +20,7 @@ Lastly, the DSA algorithm is used for the decryptor key, which is used for the s
 
 Usage:
 ------
+
     Crypto encrypt <keypass> <filename>
         Encrypts file using 'encryptor' key in keystore.
         Output is 2 files: Encrypted copy of the file,
@@ -28,6 +29,10 @@ Usage:
     Crypto decrypt <keypass> <encrypted_file>
         Decrypts file using 'decryptor' key in keystore.
         Password to keystore must be provided.
+
+The program assumes a `crypto.ks` keystore is available under the current directory.
+
+The decrypt command assumes a `{filename}.cfg` configuration file is available under the current directory (this file is generated along the encrypted file by the encrypt command).
 
 Example:
 --------
