@@ -14,40 +14,46 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class Decryptor {
 
-	private Cipher aesCipher;
+	private Cipher secretCipher;
 	private Signature signature;
 
 	private EncryptionParams params;
 
 	public Decryptor(String keypass, String originalFile) throws IOException, GeneralSecurityException {
+		// load params from config file
 		try {
 			this.params = EncryptionParams.readFromFile(originalFile);
 		} catch (ClassNotFoundException e) {
 			throw new IOException("Corrupted config file.");
 		}
-
-		aesCipher = Cipher.getInstance(params.secretAlgorithm,
-				params.secretCryptProvider);
-		Cipher rsaCipher = Cipher.getInstance(params.encryptorAlgorithm,
-				params.encryptorCryptProvider);
-		signature = Signature.getInstance(params.sigAlgorithm,
-				params.sigCryptProvider);
+		
+		// load keys from keystore
 		KeyStore keyStore = KeyStore.getInstance(params.keyStoreType,
 				params.keyStoreProvider);
 		FileInputStream inputStream = new FileInputStream(
 				Crypto.KEYSTORE_FILENAME);
 		keyStore.load(inputStream, keypass.toCharArray());
-		PrivateKey rsaPrivateKey = (PrivateKey) keyStore.getKey(
+		PrivateKey encryptorPrivateKey = (PrivateKey) keyStore.getKey(
 				params.encryptorKeyName, params.encryptorKeyPass.toCharArray());
-		PublicKey DSAPublicKey = keyStore.getCertificate(
+		Cipher encryptorCipher = Cipher.getInstance(params.encryptorAlgorithm,
+				params.encryptorCryptProvider);
+		encryptorCipher.init(Cipher.DECRYPT_MODE, encryptorPrivateKey);
+		encryptorCipher.update(params.encryptedKey);
+
+		// load signature
+		signature = Signature.getInstance(params.sigAlgorithm,
+				params.sigCryptProvider);
+		PublicKey signaturePublicKey = keyStore.getCertificate(
 				params.sigKeyName).getPublicKey();
-		rsaCipher.init(Cipher.DECRYPT_MODE, rsaPrivateKey);
-		signature.initVerify(DSAPublicKey);
-		rsaCipher.update(params.encryptedKey);
-		byte[] aesKeyBytes = rsaCipher.doFinal();
-		SecretKey aesKey = new SecretKeySpec(aesKeyBytes,
+		signature.initVerify(signaturePublicKey);
+		
+		// prepare secret key cipher
+		secretCipher = Cipher.getInstance(params.secretAlgorithm,
+				params.secretCryptProvider);
+		byte[] secretKeyBytes = encryptorCipher.doFinal();
+		SecretKey secretKey = new SecretKeySpec(secretKeyBytes,
 				params.keyGenAlgorithm);
-		aesCipher.init(Cipher.DECRYPT_MODE, aesKey, new IvParameterSpec(
+		secretCipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(
 				params.iv));
 	}
 
@@ -63,14 +69,15 @@ public class Decryptor {
 		try {
 			fos = new FileOutputStream(outputFile);
 			encryptedFileStream = new FileInputStream(params.encryptedFile);
-			inputStream = new CipherInputStream(encryptedFileStream, aesCipher);
+			inputStream = new CipherInputStream(encryptedFileStream, secretCipher);
 
+			// iteratively write decrypted data to file
 			int bytesRead;
 			while ((bytesRead = inputStream.read(buffer)) != -1) {
 				fos.write(buffer, 0, bytesRead);
 			}
 
-			// verify signature
+			// verify signature with one from config object
 			signatureFileStream = new FileInputStream(outputFile);
 			bytesRead = 0;
 			byte[] readBuffer = new byte[8];

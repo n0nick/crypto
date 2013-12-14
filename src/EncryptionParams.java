@@ -8,38 +8,44 @@ public class EncryptionParams implements java.io.Serializable {
 
 	private static final long serialVersionUID = 7014557932766694444L;
 
+	// encryptor key, passwword, crypt provider, algorithm
 	public String encryptorKeyName;
 	public String encryptorKeyPass;
 	public String encryptorCryptProvider;
 	public String encryptorAlgorithm;
+	public byte[] encryptedKey;
 
+	// signature key, algorithm, crypt provider
 	public String sigKeyName;
 	public String sigAlgorithm;
 	public String sigCryptProvider;
 
+	// secret key algorithm, crypt provider
 	public String secretAlgorithm;
 	public String secretCryptProvider;
+	public String keyGenAlgorithm;
 
+	// keystore properties
 	public String keyStoreProvider;
 	public String keyStoreType;
 
-	public String keyGenAlgorithm;
-	public byte[] encryptedKey;
-	public String encryptedFile; // encrypted filename
+	// file encryption data
 	public byte[] iv = new byte[16]; // cipher initialization vector
-	public byte[] signature;
+	public String encryptedFile; // encrypted filename
+	public byte[] signature; // signature data
 
-	public void writeToFile(String originalFile) throws IOException {
+	public void writeToFile(String originalFilename) throws IOException {
 		FileOutputStream fout = new FileOutputStream(
-				configFilename(originalFile));
+				configFilename(originalFilename));
 		ObjectOutputStream oos = new ObjectOutputStream(fout);
 		oos.writeObject(this);
 		oos.close();
 	}
 
-	public static EncryptionParams readFromFile(String originalFile)
+	public static EncryptionParams readFromFile(String originalFilename)
 			throws IOException, ClassNotFoundException {
-		FileInputStream fin = new FileInputStream(configFilename(originalFile));
+		FileInputStream fin = new FileInputStream(
+				configFilename(originalFilename));
 		ObjectInputStream ois = new ObjectInputStream(fin);
 		EncryptionParams params = (EncryptionParams) ois.readObject();
 		ois.close();

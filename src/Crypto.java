@@ -8,11 +8,15 @@ public class Crypto {
 	/**
 	 * Crypto file encryptor/decryptor.
 	 * 
-	 * Usage: Crypto encrypt <keypass> <filename> Encrypts file using
-	 * 'encryptor' key in keystore. Output is 2 files: Encrypted copy of the
-	 * file, and an encryption configuration file. Password to keystore must be
-	 * provided. Crypto decrypt <keypass> <encrypted_file> Decrypts file using
-	 * 'decryptor' key in keystore. Password to keystore must be provided.
+	 * Usage:
+	 *   Crypto encrypt <keypass> <filename>
+	 *     Encrypts file using 'encryptor' key in keystore.
+	 *     Output is 2 files: Encrypted copy of the file,
+	 *     and an encryption configuration file.
+	 *     Password to keystore must be provided.
+	 * Crypto decrypt <keypass> <encrypted_file>
+	 * 	   Decrypts file using 'decryptor' key in keystore.
+	 * 	   Password to keystore must be provided.
 	 */
 	public static void main(String[] args) {
 		if (args.length >= 1) {
@@ -64,15 +68,14 @@ public class Crypto {
 	public static void printUsage() {
 		System.err.println("Usage:");
 		System.err.println("  Crypto encrypt <keypass> <filename>");
-		System.err
-				.println("    Encrypts file using 'encryptor' key in keystore.");
-		System.err
-				.println("    Output is 2 files: Encrypted copy of the file, "
-						+ "and an encryption configuration file.");
+		System.err.println("    Encrypts file using 'encryptor' key "
+				+ "in keystore.");
+		System.err.println("    Output is 2 files: Encrypted copy of"
+				+ "the file, and an encryption configuration file.");
 		System.err.println("    Password to keystore must be provided.");
 		System.err.println("  Crypto decrypt <keypass> <encrypted_file>");
-		System.err
-				.println("    Decrypts file using 'decryptor' key in keystore.");
+		System.err.println("    Decrypts file using 'decryptor' key "
+				+ "in keystore.");
 		System.err.println("    Password to keystore must be provided.");
 	}
 
