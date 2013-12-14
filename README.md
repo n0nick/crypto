@@ -2,7 +2,9 @@ Crypto file encrypter/decrypter
 ===============================
 
 A simple software utility for encrypting and decrypting files using the Java Crypto API.
-Written as a software project for 0368-3066 Building Secure Applications (Tel Aviv University, Dec 2013).
+
+Written as a software project for 0368-3066 Building Secure Applications (Tel Aviv University, Dec 2013).  
+Written by Sagie Maoz, ID 021526025.
 
 Implementation details:
 -----------------------
