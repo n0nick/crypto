@@ -50,7 +50,7 @@ An input file `input.txt` was created:
 
 Encrypting the file:
 
-    $ Crypto pDut6LNA input.txt
+    $ java Crypto pDut6LNA input.txt
     Done!
     Encrypted file is input.txt.enc
     Config file is input.txt.cfg
@@ -59,7 +59,7 @@ The new files `input.txt.enc` and `input.txt.cfg` represent the encrypted file.
 
 Decrypting the file (on a directory with those 2 files):
 
-    $ Crypto pDut6LNA input.txt
+    $ java Crypto pDut6LNA input.txt
     Done!
     Decrypted file is input.txt.dec
 
