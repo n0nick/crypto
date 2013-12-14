@@ -76,7 +76,7 @@ public class Encryptor {
 
 	}
 
-	public void encryptFile(String filename) throws IOException, GeneralSecurityException {
+	public String encryptFile(String filename) throws IOException, GeneralSecurityException {
 
 		params.encryptedFile = filename + ".enc";
 
@@ -88,7 +88,7 @@ public class Encryptor {
 			byte[] readBuffer = new byte[8];
 			int bytesRead;
 			fileInput = new FileInputStream(filename);
-			fileOutput = new FileOutputStream(filename + ".enc");
+			fileOutput = new FileOutputStream(params.encryptedFile);
 
 			outputStream = new CipherOutputStream(fileOutput, secretCipher);
 
@@ -99,12 +99,14 @@ public class Encryptor {
 
 			params.signature = this.signature.sign();
 
-			params.writeToFile(filename + ".cfg");
+			params.writeToFile(filename);
 		} finally {
 			outputStream.close();
 			fileInput.close();
 			fileOutput.flush();
 			fileOutput.close();
 		}
+		
+		return params.encryptedFile;
 	}
 }

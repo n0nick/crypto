@@ -19,9 +19,9 @@ public class Decryptor {
 
 	private EncryptionParams params;
 
-	public Decryptor(String keypass, String configFile) throws IOException, GeneralSecurityException {
+	public Decryptor(String keypass, String originalFile) throws IOException, GeneralSecurityException {
 		try {
-			this.params = EncryptionParams.readFromFile(configFile);
+			this.params = EncryptionParams.readFromFile(originalFile);
 		} catch (ClassNotFoundException e) {
 			throw new IOException("Corrupted config file.");
 		}
@@ -51,7 +51,7 @@ public class Decryptor {
 				params.iv));
 	}
 
-	public void decryptFile(String filename) throws IOException, GeneralSecurityException {
+	public String decryptFile(String filename) throws IOException, GeneralSecurityException {
 		String outputFile = filename + ".dec";
 
 		byte[] buffer = new byte[8];
@@ -86,6 +86,8 @@ public class Decryptor {
 			fos.close();
 			signatureFileStream.close();
 		}
+		
+		return outputFile;
 	}
 
 }
