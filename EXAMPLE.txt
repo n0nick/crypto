@@ -1,0 +1,35 @@
+A keystore file `crypto.ks` was initiated using the commands:
+
+$ keytool -genkeypair -alias encryptor -keystore crypto.ks -keypass DJc8k7W9 -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel" -keyalg RSA
+
+$ keytool -genkeypair -alias decryptor -keystore crypto.ks -keypass w043Ea-H -storepass pDut6LNA -dname "CN=Sagie Maoz, OU=Computer Science, O=Tel Aviv University, L=Tel Aviv, S=, C=Israel" -keyalg DSA
+
+An input file `input.txt` was created:
+
+$ cat input.txt
+Carmen Sandiego's location:
+-21.195872, 55.696728
+
+Encrypting the file:
+
+$ Crypto pDut6LNA input.txt
+Done!
+Encrypted file is input.txt.enc
+Config file is input.txt.cfg
+
+The new files `input.txt.enc` and `input.txt.cfg` represent the encrypted file.
+
+Decrypting the file (on a directory with those 2 files):
+
+$ Crypto pDut6LNA input.txt
+Done!
+Decrypted file is input.txt.dec
+
+$ cat input.txt.dec
+Carmen Sandiego's location:
+-21.195872, 55.696728
+
+Success! The two files' content is the same:
+
+$ diff input.txt input.txt.dec
+$
